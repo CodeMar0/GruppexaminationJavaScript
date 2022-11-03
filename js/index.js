@@ -15,7 +15,6 @@ const guessingForm = document.querySelector('.guessing-form')
 // global variables
 let seconds = 60
 const currentWord = getCurrentRandomWord()
-console.log(currentWord);
 let currentWordCharacters
 let guessedCharacters = []
 let playerLives = 5
@@ -94,14 +93,19 @@ function pickedCharacter(
 /*----------  Kollar så att man skrivit en bokstav  ----------*/
 function isNotAlphabet() {
   const regex = /^[a-zA-ZäöåÄÖÅ]+$/
-  if (!playerPickedCharacter.toString().match(regex))
+  if (!playerPickedCharacter.toString().match(regex)){
     return (messageEl.innerHTML = 'Använd endast a-ö')
+
+  }
 }
 
 /*----------  Kolla om gissad bokstav finns i valda ordet och inte en bokstav man redan gissat  ----------*/
 function alreadyPickedCharacter() {
-  if (guessedCharacters.includes(playerPickedCharacter))
+  console.log(playerPickedCharacter)
+  if (guessedCharacters.includes(playerPickedCharacter)){
     return (messageEl.innerHTML = 'Redan gissat bokstaven')
+  }
+    
 }
 
 function resetWordDisplay() {
@@ -112,7 +116,6 @@ function resetWordDisplay() {
   messageEl.innerHTML = ''
   guessedWordDisplay.innerHTML = ''
   guessedCharacters = []
-  
  playerLives = 5
  playerPickedCharacter=''
 }
@@ -135,13 +138,14 @@ function playAgain(text) {
   guessingForm.classList.add('hidden')
   playAgainButton.classList.remove('hidden')
   playAgainButton.addEventListener('click', () => {
-    resetWordDisplay()
-    start()
+      playAgainButton.classList.add('hidden')
+      resetWordDisplay()
+      start()
   })
 }
 
 /*----------  Ger ett tips  ----------*/
-function hint(currentWord) {
+function hint() {
   const hint = currentWord.split('').sort().join('')
   messageEl.innerHTML = `Ordet innehåller bokstäverna: ${hint}`
 }
@@ -185,15 +189,15 @@ function check(
     currentWordEl.innerHTML = ''
     renderCorrectCharacters()
     if (currentWordCharacters.join('') === currentWord) {
-      stopTheTimer = clearInterval(stopTheTimer)
+      clearInterval(stopTheTimer)
       playAgain('Grattis du vann!')
     }
     return true
+
   } else {
     return false
   }
 }
-/*----------  Räkna ut antal tecken av valda ordet och "skriv ut" till html i form av _ _ _ _ _  ----------*/
 
 playerInputEl.addEventListener('focus', () => {
   playerInputEl.classList.add('focus')
@@ -203,21 +207,17 @@ playerInputEl.addEventListener('mouseout', () => {
 })
 
 function start() {
-
   resetWordDisplay()
   countDown()
   
-  // const currentWord = 'plocka'
- currentWordCharacters = Array.from('_'.repeat(currentWord.length))
+  currentWordCharacters = Array.from('_'.repeat(currentWord.length))
   startGameButton.classList.add('hidden')
-  playAgainButton.classList.add('hidden')
   guessingForm.classList.remove('hidden')
-  // console.log(guessedCharacters)
   renderCorrectCharacters(currentWordCharacters)
  
   /*----------  Ger tips till spelare  ----------*/
   hintButton.addEventListener('click', () => {
-    hint(currentWord)
+    hint()
   })
 
  
@@ -237,27 +237,23 @@ function start() {
     if (playerLives === 0) return
     if (event.key === 'Enter') return;
     playerPickedCharacter = event.key
-    if (isNotAlphabet()) return
+    console.log(guessedCharacters)
+    if (isNotAlphabet()) return 
     if (alreadyPickedCharacter()) return
-
-
     guessedCharacters.push(playerPickedCharacter)
-
-    const guessedRight = check( )
+    const guessedRight = check()
     if (!guessedRight) {
       playerLives--
       messageEl.innerHTML = `Du har ${playerLives} liv kvar`
-
       if (playerLives === 0) {
         clearInterval(stopTheTimer)
         playAgain('Du förlorade!')
       }
       showHangMan(playerLives)
     }
-
     renderGuessedCharacters()
+    playerPickedCharacter=''
   }
-
   playerInputEl.value = ''
 
 }) 
@@ -268,10 +264,9 @@ guessButton.addEventListener('click', () => {
   // Ser till att spelaren skrivit en bokstav
   if (isNotAlphabet()) return
   if (alreadyPickedCharacter()) return
-  console.log(playerPickedCharacter)
   guessedCharacters.push(playerPickedCharacter)
-  const result = check()
-  if (!result) {
+  const guessedRight = check()
+  if (!guessedRight) {
     playerLives--
     messageEl.innerHTML = `Du har ${playerLives} liv kvar`
     if (playerLives === 0) {
@@ -280,6 +275,7 @@ guessButton.addEventListener('click', () => {
     }
     showHangMan(playerLives)
   }
+  playerPickedCharacter=''
   playerInputEl.value = ''
   renderGuessedCharacters()
 })
