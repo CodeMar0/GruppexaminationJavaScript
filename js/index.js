@@ -18,6 +18,7 @@ const currentWord = getCurrentRandomWord()
 let currentWordCharacters
 let guessedCharacters = []
 let playerLives = 5
+
 let playerPickedCharacter
 // const currentWord = 'test';
 startGameButton.addEventListener('click', () => {
@@ -25,25 +26,25 @@ startGameButton.addEventListener('click', () => {
 })
 
 /*----------  global var för att kunna stoppa timern från olika ställen i koden  ----------*/
-let stopTheTimer = null
+let timeInterval = null
 
 function countDown() {
   let timer = seconds
   // starta timern
-  stopTheTimer = setInterval(() => {
+  timeInterval = setInterval(() => {
     timerDisplay.textContent = timer
     timer--
     if (timer < 0) {
       playAgain('Tiden är ute!')
-      clearInterval(stopTheTimer)
+      clearInterval(timeInterval)
     }
   }, 1000)
 }
 
 /*----------  Plocka ut ETT random ord från förkortad ordlista  ----------*/
 function getCurrentRandomWord() {
-  const rnd = Math.floor(Math.random() * getRandomWordList(wordList).length)
-  const currentRandomWord = getRandomWordList(wordList)[rnd].toLowerCase()
+  const randomIndex = Math.floor(Math.random() * getRandomWordList(wordList).length)
+  const currentRandomWord = getRandomWordList(wordList)[randomIndex].toLowerCase()
 
   return currentRandomWord
 }
@@ -74,20 +75,20 @@ function getRandomWordList(wordList) {
 }
 
 /*----------  kollar att valda tecken finns i currentWord  ----------*/
-function pickedCharacter(
+function getCorrectCharacters(
 ) {
-  let nrOfCharsCorrect = []
+  let numberOfCorrectCharactes = []
 
   currentWord.split('').forEach((char) => {
     if (
       char === playerPickedCharacter.toLowerCase() 
     ) {
-      nrOfCharsCorrect.push(playerPickedCharacter)
+      numberOfCorrectCharactes.push(playerPickedCharacter)
       messageEl.innerHTML = 'Rätt gissat!'
     }
   })
 
-  return nrOfCharsCorrect
+  return numberOfCorrectCharactes
 }
 
 /*----------  Kollar så att man skrivit en bokstav  ----------*/
@@ -100,7 +101,7 @@ function isNotAlphabet() {
 }
 
 /*----------  Kolla om gissad bokstav finns i valda ordet och inte en bokstav man redan gissat  ----------*/
-function alreadyPickedCharacter() {
+function isDuplicatedCharacter() {
   console.log(playerPickedCharacter)
   if (guessedCharacters.includes(playerPickedCharacter)){
     return (messageEl.innerHTML = 'Redan gissat bokstaven')
@@ -108,7 +109,7 @@ function alreadyPickedCharacter() {
     
 }
 
-function resetWordDisplay() {
+function reset() {
   seconds = 60
   showHangMan()
   guessedCharacters = [];
@@ -139,7 +140,7 @@ function playAgain(text) {
   playAgainButton.classList.remove('hidden')
   playAgainButton.addEventListener('click', () => {
       playAgainButton.classList.add('hidden')
-      resetWordDisplay()
+      reset()
       start()
   })
 }
@@ -177,9 +178,8 @@ function showHangMan(playerLives) {
 }
 function check(
 ) {
-  // console.log(pickedCharacter()
   if (
-    pickedCharacter().length > 0
+    getCorrectCharacters().length > 0
   ) {
     currentWordCharacters.forEach((char, i) => {
       if (currentWord[i] === playerPickedCharacter) {
@@ -189,7 +189,7 @@ function check(
     currentWordEl.innerHTML = ''
     renderCorrectCharacters()
     if (currentWordCharacters.join('') === currentWord) {
-      clearInterval(stopTheTimer)
+      clearInterval(timeInterval)
       playAgain('Grattis du vann!')
     }
     return true
@@ -206,10 +206,10 @@ playerInputEl.addEventListener('mouseout', () => {
   playerInputEl.classList.remove('focus')
 })
 
+/*----------  Start av spel  ----------*/
 function start() {
-  resetWordDisplay()
   countDown()
-  
+  /*----------  skapar en array med _ beroende på längden av nuvarande ord  ----------*/
   currentWordCharacters = Array.from('_'.repeat(currentWord.length))
   startGameButton.classList.add('hidden')
   guessingForm.classList.remove('hidden')
@@ -239,14 +239,14 @@ function start() {
     playerPickedCharacter = event.key
     console.log(guessedCharacters)
     if (isNotAlphabet()) return 
-    if (alreadyPickedCharacter()) return
+    if (isDuplicatedCharacter()) return
     guessedCharacters.push(playerPickedCharacter)
     const guessedRight = check()
     if (!guessedRight) {
       playerLives--
       messageEl.innerHTML = `Du har ${playerLives} liv kvar`
       if (playerLives === 0) {
-        clearInterval(stopTheTimer)
+        clearInterval(timeInterval)
         playAgain('Du förlorade!')
       }
       showHangMan(playerLives)
@@ -263,14 +263,14 @@ guessButton.addEventListener('click', () => {
   playerPickedCharacter = playerInputEl.value.trim().toLowerCase()
   // Ser till att spelaren skrivit en bokstav
   if (isNotAlphabet()) return
-  if (alreadyPickedCharacter()) return
+  if (isDuplicatedCharacter()) return
   guessedCharacters.push(playerPickedCharacter)
   const guessedRight = check()
   if (!guessedRight) {
     playerLives--
     messageEl.innerHTML = `Du har ${playerLives} liv kvar`
     if (playerLives === 0) {
-      clearInterval(stopTheTimer)
+      clearInterval(timeInterval)
       playAgain('Du förlorade!')
     }
     showHangMan(playerLives)
